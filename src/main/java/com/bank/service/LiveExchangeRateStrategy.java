@@ -1,6 +1,7 @@
 package com.bank.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ public class LiveExchangeRateStrategy implements ExchangeRateStrategy {
     }
 
     @Override
+    @Cacheable(value = "exchangeRates", key = "#fromCurrency + '_' + #toCurrency")
     @SuppressWarnings("unchecked")
     public BigDecimal getRate(String fromCurrency, String toCurrency) {
         try {
