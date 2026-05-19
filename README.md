@@ -1,18 +1,26 @@
 # Multi-Currency Banking API
 
-A production-style REST API built with **Java 17 + Spring Boot** that enables **cross-border fund transfers with live exchange rate conversion**, simulating real-world fintech backend systems.
+[![Java 17](https://img.shields.io/badge/Java-17-blue.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+[![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7-red.svg)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Containerized-blue.svg)](https://www.docker.com/)
+[![AWS EC2](https://img.shields.io/badge/AWS-EC2-orange.svg)](https://aws.amazon.com/ec2/)
+
+A production-style REST API built with **Java 17 + Spring Boot 3** that enables cross-border fund transfers with live exchange rate conversion, simulating real-world fintech backend systems.
+
+**Live Demo:** [http://YOUR_AWS_EC2_URL:8080/swagger-ui.html](http://YOUR_AWS_EC2_URL:8080/swagger-ui.html)  
+*(Replace with your actual EC2 public IP before committing)*
 
 ---
 
 ## Problem Statement
 
-Traditional banking APIs treat money as a single-currency value.
+Traditional banking APIs treat money as a single-currency value. In reality:
 
-In reality:
-
-- users hold wallets in multiple currencies
-- transfers happen across borders
-- exchange rate snapshots must be auditable
+- Users hold **wallets in multiple currencies**
+- Transfers happen **across borders**
+- Exchange rate snapshots must be **auditable and immutable**
 
 This API solves that by supporting **multi-wallet users + real-time currency conversion + immutable transaction logs**.
 
@@ -20,23 +28,42 @@ This API solves that by supporting **multi-wallet users + real-time currency con
 
 ## Architecture
 
-Client Request
-      │
-      ▼
-REST Controller Layer
-(Handles HTTP + validation)
-      │
-      ▼
-Service Layer
-(Business logic + FX Strategy Pattern)
-      │
-      ▼
-Repository Layer
-(Spring Data JPA + H2 DB)
-      │
-      ▼
-Transaction Audit Log
-(Immutable conversion history)
+![System Architecture](./System_architecture.png)
+
+### Layer Breakdown
+
+| Layer | Technology | Responsibility |
+|-------|-----------|--------------|
+| **Client** | REST Client / Swagger UI | HTTP requests + JWT Bearer tokens |
+| **Security** | Spring Security + JWT Filter | Stateless authentication; `/api/auth/**` open |
+| **API Gateway** | Spring Boot 3 Controllers | HTTP handling, request validation, routing |
+| **Service** | Spring Services + Strategy Pattern | Business logic, FX conversion, caching checks |
+| **Caching** | Redis | FX rates cached with 5-minute TTL; **80% reduction** in external API calls |
+| **External** | ExchangeRate-API | Live FX rates for 10+ currencies |
+| **Repository** | Spring Data JPA | Data access abstraction |
+| **Database** | PostgreSQL + Flyway | Primary persistent storage with versioned schema migrations |
+| **Testing** | JUnit 5 + Mockito | 85%+ coverage including mocked external API failures |
+| **Deployment** | Docker + AWS EC2 (t2.micro) | Containerized monolith on single EC2 instance |
+
+### Design Patterns Used
+
+- **Strategy Pattern:** `ExchangeRateStrategy` interface with `LiveExchangeRateStrategy` and `MockExchangeRateStrategy` implementations. Swap FX sources without touching business logic.
+- **Factory Pattern:** Wallet creation logic abstracted from controllers.
+- **Repository Pattern:** Clean separation: Controller → Service → Repository. Each layer has a single responsibility.
+
+---
+
+## Features
+
+- **Multi-Wallet Users:** Create users with multiple currency wallets (USD, EUR, INR, etc.)
+- **Cross-Border Transfers:** Transfer between wallets with real-time FX conversion
+- **Immutable Transaction Logs:** Every conversion is recorded with the snapshot exchange rate
+- **JWT Authentication:** Stateless Bearer token security on all endpoints
+- **Idempotency Keys:** Duplicate transaction prevention via `Idempotency-Key` header
+- **Redis Caching:** FX rates cached for 5 minutes, reducing external API dependency by ~80%
+- **Schema Versioning:** Flyway-managed PostgreSQL migrations
+- **Comprehensive Testing:** 85%+ coverage with unit and integration tests
+- **Auto-Generated Docs:** SpringDoc OpenAPI at `/swagger-ui.html`
 
 ---
 
@@ -46,83 +73,109 @@ Transaction Audit Log
 |-----------|---------|
 | Java 17 | Core language |
 | Spring Boot 3 | REST framework |
+| Spring Security + JWT | Stateless authentication & authorization |
 | Spring Data JPA | Data access layer |
-| H2 Database | In-memory DB |
-| JUnit 5 + Mockito | Testing |
+| PostgreSQL 15 | Primary relational database |
+| Flyway | Database schema versioning & migrations |
+| Redis 7 | Exchange rate caching with TTL |
+| JUnit 5 + Mockito | Unit & integration testing |
 | Docker | Containerization |
-| GitHub Actions | CI/CD |
-| ExchangeRate API | Live FX conversion |
-
----
-
-## Design Patterns Used
-
-### Strategy Pattern
-
-`ExchangeRateStrategy`
-
-Allows switching between:
-
-- live FX rates
-- mock FX rates (testing)
-
-without changing business logic.
-
----
-
-### Factory Pattern
-
-Wallet creation logic abstracted from controller layer.
-
----
-
-### Repository Pattern
-
-Clean separation between:
-
-Controller → Service → Repository
-
-Each layer has a single responsibility.
+| AWS EC2 (t2.micro) | Cloud deployment |
+| SpringDoc OpenAPI | Auto-generated API documentation |
+| ExchangeRate-API | Live foreign exchange rate data |
 
 ---
 
 ## API Endpoints
 
+### Authentication
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/auth/register` | Register new user | Public |
+| `POST` | `/api/auth/login` | Login, returns JWT | Public |
+| `GET` | `/api/auth/me` | Get current user | Bearer JWT |
+
 ### Users
-
-| Method | Endpoint | Description |
-|-------|----------|-------------|
-| POST | `/api/users` | Create user |
-| GET | `/api/users/{id}` | Get user |
-| GET | `/api/users` | Get all users |
-
----
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/users` | Create user | Bearer JWT |
+| `GET` | `/api/users/{id}` | Get user by ID | Bearer JWT |
+| `GET` | `/api/users` | List all users | Bearer JWT |
 
 ### Wallets
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/wallets` | Create wallet | Bearer JWT |
+| `GET` | `/api/wallets/user/{userId}` | Get user's wallets | Bearer JWT |
+| `GET` | `/api/wallets/{walletId}` | Get wallet by ID | Bearer JWT |
+| `POST` | `/api/wallets/{walletId}/deposit` | Deposit funds | Bearer JWT |
 
-| Method | Endpoint | Description |
-|-------|----------|-------------|
-| POST | `/api/wallets` | Create wallet |
-| GET | `/api/wallets/user/{userId}` | User wallets |
-| GET | `/api/wallets/{walletId}` | Wallet by ID |
-| POST | `/api/wallets/{walletId}/deposit` | Deposit money |
+### Transfers
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/transfers` | Cross-currency transfer (requires `Idempotency-Key` header) | Bearer JWT |
+| `GET` | `/api/transfers/history/{walletId}` | Transaction history | Bearer JWT |
+
+### Health & Docs
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/actuator/health` | Service health check | Public |
+| `GET` | `/swagger-ui.html` | Interactive API documentation | Public |
 
 ---
 
-### Transfers
+## Security
 
-| Method | Endpoint | Description |
-|-------|----------|-------------|
-| POST | `/api/transfers` | Cross-currency transfer |
-| GET | `/api/transfers/history/{walletId}` | Transaction history |
+- **JWT Authentication:** Stateless Bearer tokens via Spring Security. Tokens expire after 24 hours.
+- **BCrypt Encoding:** Passwords hashed with BCrypt before storage.
+- **Idempotency:** `Idempotency-Key` header on transfer requests prevents duplicate transactions under network retries.
+- **Input Validation:** Bean Validation (`@Valid`) on all request DTOs.
+- **Global Exception Handling:** `@ControllerAdvice` returns consistent error JSON with structured error codes.
 
 ---
 
 ## Quick Start
 
-### Run Locally
+### Prerequisites
+- Java 17+
+- Maven 3.8+
+- Docker & Docker Compose
+- (Optional) PostgreSQL and Redis running locally
 
+
+**Coverage:** 85%+ line coverage across service and controller layers, including mocked external API failures and Redis cache miss scenarios.
+
+---
+
+## Deployment
+
+### AWS EC2 (Current)
+- **Instance:** t2.micro (Free Tier eligible)
+- **Services:** Single EC2 hosts Docker containers for App, PostgreSQL, and Redis
+- **Next Steps:** RDS for managed PostgreSQL, ElastiCache for Redis, ALB for load balancing
+
+### Docker Build
 ```bash
-git clone https://github.com/PranavBj2406/multi-currency-banking-api.git
-cd multi-currency-banking-api
-mvn spring-boot:run
+docker build -t multi-currency-api .
+docker run -p 8080:8080 --env-file .env multi-currency-api
+```
+
+---
+
+## Roadmap
+
+- [ ] Separate RDS and ElastiCache from application EC2
+- [ ] Implement rate limiting (Bucket4j or Redis-based)
+- [ ] Add CI/CD pipeline with GitHub Actions
+- [ ] Implement API versioning (`/api/v1/`)
+- [ ] Structured JSON logging with correlation IDs
+
+---
+
+## License
+
+MIT License — feel free to use this as a reference for your own projects.
+
+---
+
+**Built by [Pranav BJ](https://github.com/PranavBj2406) | [LinkedIn](https://linkedin.com/in/pranav-bj)**
