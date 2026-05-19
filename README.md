@@ -9,8 +9,11 @@
 
 A production-style REST API built with **Java 17 + Spring Boot 3** that enables cross-border fund transfers with live exchange rate conversion, simulating real-world fintech backend systems.
 
-**Live Demo:** [http://YOUR_AWS_EC2_URL:8080/swagger-ui.html](http://YOUR_AWS_EC2_URL:8080/swagger-ui.html)  
-*(Replace with your actual EC2 public IP before committing)*
+---
+
+## System Architecture
+
+<img width="1280" height="1066" alt="System_architecture" src="https://github.com/user-attachments/assets/163f9aed-ddf5-4d48-80c6-054e82aef47c" />
 
 ---
 
