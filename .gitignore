@@ -6,3 +6,5 @@ target/
 *.iml
 .DS_Store
 app.jar
+bank-api-key.pem
+bank-api-key.pem:Zone.Identifier
