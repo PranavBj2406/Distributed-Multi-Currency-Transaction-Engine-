@@ -1,4 +1,4 @@
-# Multi-Currency Banking API
+#🏦💰 Multi-Currency Banking API 💰🏦
 
 [![Java 17](https://img.shields.io/badge/Java-17-blue.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
 [![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
