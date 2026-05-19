@@ -11,12 +11,6 @@ A production-style REST API built with **Java 17 + Spring Boot 3** that enables 
 
 ---
 
-## System Architecture
-
-<img width="1280" height="1066" alt="System_architecture" src="https://github.com/user-attachments/assets/163f9aed-ddf5-4d48-80c6-054e82aef47c" />
-
----
-
 ## Problem Statement
 
 Traditional banking APIs treat money as a single-currency value. In reality:
