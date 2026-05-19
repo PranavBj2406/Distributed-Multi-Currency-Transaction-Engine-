@@ -9,7 +9,7 @@
 
 A production-style REST API built with **Java 17 + Spring Boot 3** that enables cross-border fund transfers with live exchange rate conversion, simulating real-world fintech backend systems.
 ---
-- Live Demo: http://43.204.227.166:8080/swagger-ui/index.html
+- Live Demo: [Swagger API Docs](http://43.204.227.166:8080/swagger-ui/index.html)
 ## Problem Statement
 
 Traditional banking APIs treat money as a single-currency value. In reality:
