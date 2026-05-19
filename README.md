@@ -8,9 +8,9 @@
 [![AWS EC2](https://img.shields.io/badge/AWS-EC2-orange.svg)](https://aws.amazon.com/ec2/)
 
 A production-style REST API built with **Java 17 + Spring Boot 3** that enables cross-border fund transfers with live exchange rate conversion, simulating real-world fintech backend systems.
-**Live Demo:** [http://43.204.227.166:8080/swagger-ui.html](http://YOUR_AWS_EC2_URL:8080/swagger-ui.html)  
 ---
-
+Live Demo: [http://43.204.227.166:8080/swagger-ui.html](http://YOUR_AWS_EC2_URL:8080/swagger-ui.html)  
+--
 ## Problem Statement
 
 Traditional banking APIs treat money as a single-currency value. In reality:
